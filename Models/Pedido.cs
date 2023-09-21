@@ -1,9 +1,9 @@
 namespace tl2_tp4_2023_gonchyrobinson;
 public enum EstadoPedido
 {
-    Entregado,
-    Pendiente,
-    Rechazado
+    Pendiente=0,
+    Entregado=1,
+    Rechazado=2
 }
 public class Pedido
 {
