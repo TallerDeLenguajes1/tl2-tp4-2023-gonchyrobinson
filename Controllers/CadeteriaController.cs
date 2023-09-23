@@ -31,6 +31,7 @@ public class CadeteriaController : ControllerBase
     public ActionResult<string> AgregarPedido(Pedido pedido){
         bool encuentra = cadeteria.CrearPedido(pedido);
         if(encuentra){
+            cadeteria.GuardarPedidos();
             return Ok("Pedido agregado con exito");
         }else
         {
@@ -42,6 +43,7 @@ public class CadeteriaController : ControllerBase
         bool agregado = cadeteria.AsignarCadeteAPedido(idCadete,idPedido);
         if (agregado)
         {
+            cadeteria.GuardarPedidos();
             return Ok("Se asigno correctamente el pedido al cadete");
         }else
         {
@@ -52,6 +54,7 @@ public class CadeteriaController : ControllerBase
     public ActionResult<string> CambiarEstadoPedido(int idPedido, int NuevoEstado){
         bool actualizado = cadeteria.ActualizarPedido(idPedido,NuevoEstado);
         if(actualizado){
+            cadeteria.GuardarPedidos();
             return Ok("Estado cambiado correctamente");
         }else
         {
@@ -63,6 +66,7 @@ public class CadeteriaController : ControllerBase
         bool cambia = cadeteria.ReasignarPedido(idPedido,idNuevoCadete);
         if (cambia)
         {
+            cadeteria.GuardarPedidos();
             return Ok("Se modifico el cadete exitosamente");
         }else
         {

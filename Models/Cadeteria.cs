@@ -3,40 +3,69 @@ using System.Collections;
 namespace tl2_tp4_2023_gonchyrobinson;
 public class Cadeteria
 {
-    private static Cadeteria cadeteriaSingleton;
+    //Variables privadas
     private string nombre;
     private string direccion;
     private List<Cadete> cadetes;
+    private AccesoADatosPedidos datosPedidos;
+     private List<Pedido> pedidos;
 
-    private List<Pedido> pedidos;
-    public static Cadeteria GetCadeteriaSingleton(string rutaCadetes, string rutaCadeterias)
-    {
-        if (cadeteriaSingleton == null)
-        {
-            AccesoADatos helper = new AccesoJson();
-            Random rand = new Random();
-            List<Cadeteria> cadeterias = helper.AccesoCadeterias(rutaCadeterias);
-            cadeteriaSingleton = cadeterias[rand.Next(0, cadeterias.Count())];
-            cadeteriaSingleton.AgregaCadetesJson(rutaCadetes);
-        }
-        return cadeteriaSingleton;
-    }
+    //Variables publicas
     public string Nombre { get => nombre; set => nombre = value; }
     public string Direccion { get => direccion; set => direccion = value; }
-    public List<Cadete> Cadetes { get => cadetes; set => cadetes = value; }
     public List<Pedido> Pedidos { get => pedidos; set => pedidos = value; }
+    public List<Cadete> Cadetes { get => cadetes; set => cadetes = value; }
 
+
+
+
+    //Constructores
     public Cadeteria()
     {
 
     }
     public Cadeteria(string nombre, string direccion)
     {
-        this.nombre = nombre;
+        this.nombre = nombre; 
         this.direccion = direccion;
         this.cadetes = new List<Cadete>();
         this.pedidos = new List<Pedido>();
     }
+    public Cadeteria(string nombre, string direccion, AccesoADatosPedidos accesoPedidos)
+    {
+        this.nombre = nombre;
+        this.direccion = direccion;
+        this.cadetes = new List<Cadete>();
+        this.pedidos = new List<Pedido>();
+        this.datosPedidos=accesoPedidos;
+    }
+
+
+
+
+    //Singleton
+    private static Cadeteria cadeteriaSingleton;
+    public static Cadeteria GetCadeteriaSingleton(string rutaCadetes, string rutaCadeterias)
+    {
+        if (cadeteriaSingleton == null)
+        {
+            AccesoADatosCadeteria helperCadeterias = new AccesoADatosCadeteria();
+            AccesoADatosCadetes helperCadetes = new AccesoADatosCadetes();
+            AccesoADatosPedidos helperPedidos = new AccesoADatosPedidos();
+            Random rand = new Random();
+            Cadeteria cadeterias = helperCadeterias.Obtener();
+            cadeteriaSingleton = cadeterias;
+            List<Cadete> cadetes = helperCadetes.Obtener();
+            cadeteriaSingleton.cadetes=cadetes;
+            cadeteriaSingleton.datosPedidos=helperPedidos;
+        }
+        return cadeteriaSingleton;
+    }
+    
+
+
+
+    //Pedidos
     public void CrearPedido(string? nombreCliente, string? direccionCliente, string? telefonoCliente, string? datosReferenciaDireccionCliente, int idPedido, string? obsPedido, int idCadeteElegido)
     {
         Cliente cliente = new Cliente(nombreCliente, direccionCliente, telefonoCliente, datosReferenciaDireccionCliente);
@@ -54,91 +83,6 @@ public class Cadeteria
         Cliente cliente = new Cliente(nombreCliente, direccionCliente, telefonoCliente, datosReferenciaDireccionCliente);
         Pedido pedido = new Pedido(idPedido, obsPedido, cliente);
         this.pedidos.Add(pedido);
-    }
-
-    public bool ReasignarPedido(int pedidoId, int cadeteNuevoId)
-    {
-        Pedido pedidoEncontrado = this.pedidos.FirstOrDefault(ped => ped.Numero == pedidoId);
-        Cadete cadeteNuevo = this.cadetes.FirstOrDefault(cad => cad.Id == cadeteNuevoId);
-        if (cadeteNuevo != null && pedidoEncontrado != null)
-        {
-            pedidoEncontrado.AsignarCadeteAPedido(cadeteNuevo);
-            return pedidoEncontrado.CoincideCadete(cadeteNuevo);
-        }
-        else
-        {
-            return false;
-        }
-    }
-    public void EliminarPedido(int pedidoId)
-    {
-        Pedido eliminar = this.pedidos.FirstOrDefault(ped => ped.Numero == pedidoId);
-        if (eliminar != null)
-        {
-            this.pedidos.Remove(eliminar);
-        }
-    }
-    private void AgregarCadete(Cadete cadete)
-    {
-        this.cadetes.Add(cadete);
-    }
-    public Cadete? DevuelveCadete(int numCadete)
-    {
-        return this.cadetes.FirstOrDefault(cad => cad.Id == numCadete, null);
-    }
-    public string MuestraCadetes()
-    {
-        string lista = "";
-        foreach (var item in this.cadetes)
-        {
-            lista += "\t - " + item.Mostrar() + "\n";
-        }
-        return lista;
-    }
-    public string Informe()
-    {
-        List<DatosCadete> datosCadetes = new List<DatosCadete>();
-        foreach (var item in this.cadetes)
-        {
-            DatosCadete datosCad = new DatosCadete(cantPedidosCadeteEntregados(item.Id), JornalACobrar(item.Id), item.Nombre);
-            datosCadetes.Add(datosCad);
-        }
-        var informe = new Informe(datosCadetes);
-        return informe.Mostrar();
-    }
-    public bool ActualizarPedido(int idElegido, int nuevoEstadoInt)
-    {
-        Pedido actualizar = this.pedidos.FirstOrDefault(ped => ped.Numero == idElegido,null);
-        if (actualizar != null)
-        {
-            actualizar.ActualizarPedido(nuevoEstadoInt);
-            return actualizar.Estado == Pedido.ConvierteIntAEnum(nuevoEstadoInt);
-        }
-        else
-        {
-            return false;
-        }
-
-    }
-    public float JornalACobrar(int id)
-    {
-        float monto = 500 * cantPedidosCadeteEntregados(id);
-        return monto;
-    }
-    public int cantPedidosCadeteEntregados(int id)
-    {
-        List<Pedido> pedidosCad = this.pedidos.Where(ped => ped.CoincideCadete(id)).ToList();
-        return pedidosCad.Count(ped => ped.Estado == EstadoPedido.Entregado);
-    }
-
-    public string MostrarPedidos()
-    {
-        string pedidosMostrar = "";
-        foreach (var ped in this.pedidos)
-        {
-            pedidosMostrar += "\n - " + ped.MostrarPedido();
-        }
-        return pedidosMostrar;
     }
     public bool AsignarCadeteAPedido(int idCadete, int idPedido)
     {
@@ -162,9 +106,51 @@ public class Cadeteria
             Console.WriteLine("Id de cadete inexistente");
             return false;
         }
+    } 
+    public bool ReasignarPedido(int pedidoId, int cadeteNuevoId)
+    {
+        Pedido pedidoEncontrado = this.pedidos.FirstOrDefault(ped => ped.Numero == pedidoId);
+        Cadete cadeteNuevo = this.cadetes.FirstOrDefault(cad => cad.Id == cadeteNuevoId);
+        if (cadeteNuevo != null && pedidoEncontrado != null)
+        {
+            pedidoEncontrado.AsignarCadeteAPedido(cadeteNuevo);
+            return pedidoEncontrado.CoincideCadete(cadeteNuevo);
+        }
+        else
+        {
+            return false;
+        }
     }
+    public bool ActualizarPedido(int idElegido, int nuevoEstadoInt)
+    {
+        Pedido actualizar = this.pedidos.FirstOrDefault(ped => ped.Numero == idElegido,null);
+        if (actualizar != null)
+        {
+            actualizar.ActualizarPedido(nuevoEstadoInt);
+            return actualizar.Estado == Pedido.ConvierteIntAEnum(nuevoEstadoInt);
+        }
+        else
+        {
+            return false;
+        }
 
-    private bool EncuentraCadete(Cadete cad)
+    }
+    public void EliminarPedido(int pedidoId)
+    {
+        Pedido eliminar = this.pedidos.FirstOrDefault(ped => ped.Numero == pedidoId);
+        if (eliminar != null)
+        {
+            this.pedidos.Remove(eliminar);
+        }
+    }
+    
+    public int cantPedidosCadeteEntregados(int id)//Cantidad de pedidos entregados por un cadete (el del id)
+    {
+        List<Pedido> pedidosCad = this.pedidos.Where(ped => ped.CoincideCadete(id)).ToList();
+        return pedidosCad.Count(ped => ped.Estado == EstadoPedido.Entregado);
+    }
+    
+    private bool EncuentraCadete(Cadete cad) //Defuelfe si un cadete pertenece a la lista de cadetes
     {
         return this.cadetes.FirstOrDefault(cadet => cadet.Id == cad.Id) != null;
     }
@@ -184,55 +170,7 @@ public class Cadeteria
     {
         return this.pedidos.Where(ped => ped.NoTieneCadeteAsignado()).ToList();
     }
-    public void AgregaCadetes(int tipoArchivo)
-    {
-        AccesoADatos helper;
-        List<Cadete> cadetes;
-        string rutaCadeterias;
-        string rutaCadetes;
-        if (tipoArchivo == 1)
-        {
-            rutaCadeterias = "Cadeterias.csv";
-            rutaCadetes = "Nombres.csv";
-            helper = new AccesoCSV();
-        }
-        else
-        {
-            rutaCadeterias = "Cadeterias.json";
-            rutaCadetes = "Cadetes.json";
-            helper = new AccesoJson();
-        }
-        cadetes = helper.AccesoCadetes(rutaCadetes);
-        Random rand = new Random();
-        int cant = rand.Next() % cadetes.Count();
-        List<Cadete> cadetesAgregar = new List<Cadete>();
-        for (int i = 0; i < cant; i++)
-        {
-            Cadete cadAgregar = cadetes[rand.Next() % cadetes.Count()];
-            while (this.EncuentraCadete(cadAgregar))
-            {
-                cadAgregar = cadetes[rand.Next() % cadetes.Count()];
-            }
-            this.AgregarCadete(cadAgregar);
-        }
-    }
-    public void AgregaCadetesJson(string ruta)
-    {
-        AccesoADatos helper = new AccesoJson();
-        List<Cadete> cadetes = helper.AccesoCadetes(ruta);
-        Random rand = new Random();
-        int cant = rand.Next() % cadetes.Count();
-        List<Cadete> cadetesAgregar = new List<Cadete>();
-        for (int i = 0; i < cant; i++)
-        {
-            Cadete cadAgregar = cadetes[rand.Next() % cadetes.Count()];
-            while (this.EncuentraCadete(cadAgregar))
-            {
-                cadAgregar = cadetes[rand.Next() % cadetes.Count()];
-            }
-            this.AgregarCadete(cadAgregar);
-        }
-    }
+   
     public List<Pedido> GetListaPedidos()
     {
         if (this.pedidos != null)
@@ -244,7 +182,28 @@ public class Cadeteria
             return new List<Pedido>();
         }
     }
-    public List<Cadete> GetListaCadetes()
+     public string MostrarPedidos()
+    {
+        string pedidosMostrar = "";
+        foreach (var ped in this.pedidos)
+        {
+            pedidosMostrar += "\n - " + ped.MostrarPedido();
+        }
+        return pedidosMostrar;
+    }
+
+
+
+    //Cadetes
+    private void AgregarCadete(Cadete cadete)
+    {
+        this.cadetes.Add(cadete);
+    }
+    public Cadete? DevuelveCadete(int numCadete)//Devuelve el cadete que coincide con ID, si es que lo encuentra en la cadeteria, sino devuelve null
+    {
+        return this.cadetes.FirstOrDefault(cad => cad.Id == numCadete, null);
+    }
+     public List<Cadete> GetListaCadetes()//Devuelve la lista de cadetes
     {
         if (this.cadetes != null)
         {
@@ -254,6 +213,35 @@ public class Cadeteria
         {
             return new List<Cadete>();
         }
+    }
+    public float JornalACobrar(int id) //Devuelve el monto a cobrar por un cadete (se lo utiliza en el informe)
+    {
+        float monto = 500 * cantPedidosCadeteEntregados(id);
+        return monto;
+    }
+    public string MuestraCadetes()
+    {
+        string lista = "";
+        foreach (var item in this.cadetes)
+        {
+            lista += "\t - " + item.Mostrar() + "\n";
+        }
+        return lista;
+    }
+
+
+
+    //Informe
+    public string Informe()
+    {
+        List<DatosCadete> datosCadetes = new List<DatosCadete>();
+        foreach (var item in this.cadetes)
+        {
+            DatosCadete datosCad = new DatosCadete(cantPedidosCadeteEntregados(item.Id), JornalACobrar(item.Id), item.Nombre);
+            datosCadetes.Add(datosCad);
+        }
+        var informe = new Informe(datosCadetes);
+        return informe.Mostrar();
     }
     public Informe GetInforme()
     {
@@ -265,6 +253,14 @@ public class Cadeteria
         }
         var informe = new Informe(datosCadetes);
         return informe;
+    }
+
+
+
+
+    //Guardar pedidos en JSON
+    public void GuardarPedidos(){
+        this.datosPedidos.Guardar(this.pedidos);
     }
 }
 
