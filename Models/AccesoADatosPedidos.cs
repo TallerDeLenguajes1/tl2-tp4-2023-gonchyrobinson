@@ -4,7 +4,7 @@ public class AccesoADatosPedidos
 {
     public List<Pedido> Obtener()
     {
-        string rutaDeArchivo = "./CargaArchivos/Cadetes.json";
+        string rutaDeArchivo = "./CargaArchivos/Pedidos.json";
         List<Pedido> listaPedidos;
         string documento;
         using (var archivoOpen = new FileStream(rutaDeArchivo, FileMode.Open))
@@ -20,16 +20,8 @@ public class AccesoADatosPedidos
     }
     public void Guardar(List<Pedido> pedidos)
     {
-        string nombreArchivo = "./CargaArchivos/Pedidos.json";
-        string datos = JsonSerializer.Serialize(pedidos);
-        using (var archivo = new FileStream(nombreArchivo, FileMode.OpenOrCreate))
-        {
-            using (var strWriter = new StreamWriter(archivo))
-            {
-                strWriter.WriteLine("{0}", datos);
-                strWriter.Close();
-            }
-        }
-
+        string datosPedidos = "./CargaArchivos/Pedidos.json";
+        string formatoJson = JsonSerializer.Serialize(pedidos);
+        File.WriteAllText(datosPedidos, formatoJson);
     }
 }

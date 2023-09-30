@@ -8,7 +8,9 @@ public class Cadeteria
     private string direccion;
     private List<Cadete> cadetes;
     private AccesoADatosPedidos datosPedidos;
-     private List<Pedido> pedidos;
+    private AccesoADatosCadetes datosCadetes;
+    private List<Pedido> pedidos;
+
 
     //Variables publicas
     public string Nombre { get => nombre; set => nombre = value; }
@@ -26,7 +28,7 @@ public class Cadeteria
     }
     public Cadeteria(string nombre, string direccion)
     {
-        this.nombre = nombre; 
+        this.nombre = nombre;
         this.direccion = direccion;
         this.cadetes = new List<Cadete>();
         this.pedidos = new List<Pedido>();
@@ -37,7 +39,7 @@ public class Cadeteria
         this.direccion = direccion;
         this.cadetes = new List<Cadete>();
         this.pedidos = new List<Pedido>();
-        this.datosPedidos=accesoPedidos;
+        this.datosPedidos = accesoPedidos;
     }
 
 
@@ -50,20 +52,24 @@ public class Cadeteria
         if (cadeteriaSingleton == null)
         {
             AccesoADatosCadeteria helperCadeterias = new AccesoADatosCadeteria();
-            AccesoADatosCadetes helperCadetes = new AccesoADatosCadetes();
-            AccesoADatosPedidos helperPedidos = new AccesoADatosPedidos();
-            Random rand = new Random();
-            Cadeteria cadeterias = helperCadeterias.Obtener();
-            cadeteriaSingleton = cadeterias;
-            List<Cadete> cadetes = helperCadetes.Obtener();
-            cadeteriaSingleton.cadetes=cadetes;
-            cadeteriaSingleton.datosPedidos=helperPedidos;
+            cadeteriaSingleton = helperCadeterias.Obtener();
+            cadeteriaSingleton.datosPedidos = new AccesoADatosPedidos();
+            cadeteriaSingleton.datosCadetes = new AccesoADatosCadetes();
+            cadeteriaSingleton.CargarCadetes();
+            cadeteriaSingleton.CargarPedidos();
         }
         return cadeteriaSingleton;
     }
-    
 
-
+    //Lectura de archivos
+    private void CargarCadetes()
+    {
+        this.cadetes = datosCadetes.Obtener();
+    }
+    private void CargarPedidos()
+    {
+        this.pedidos = this.datosPedidos.Obtener();
+    }
 
     //Pedidos
     public void CrearPedido(string? nombreCliente, string? direccionCliente, string? telefonoCliente, string? datosReferenciaDireccionCliente, int idPedido, string? obsPedido, int idCadeteElegido)
@@ -106,7 +112,7 @@ public class Cadeteria
             Console.WriteLine("Id de cadete inexistente");
             return false;
         }
-    } 
+    }
     public bool ReasignarPedido(int pedidoId, int cadeteNuevoId)
     {
         Pedido pedidoEncontrado = this.pedidos.FirstOrDefault(ped => ped.Numero == pedidoId);
@@ -123,7 +129,7 @@ public class Cadeteria
     }
     public bool ActualizarPedido(int idElegido, int nuevoEstadoInt)
     {
-        Pedido actualizar = this.pedidos.FirstOrDefault(ped => ped.Numero == idElegido,null);
+        Pedido actualizar = this.pedidos.FirstOrDefault(ped => ped.Numero == idElegido, null);
         if (actualizar != null)
         {
             actualizar.ActualizarPedido(nuevoEstadoInt);
@@ -143,13 +149,13 @@ public class Cadeteria
             this.pedidos.Remove(eliminar);
         }
     }
-    
+
     public int cantPedidosCadeteEntregados(int id)//Cantidad de pedidos entregados por un cadete (el del id)
     {
         List<Pedido> pedidosCad = this.pedidos.Where(ped => ped.CoincideCadete(id)).ToList();
         return pedidosCad.Count(ped => ped.Estado == EstadoPedido.Entregado);
     }
-    
+
     private bool EncuentraCadete(Cadete cad) //Defuelfe si un cadete pertenece a la lista de cadetes
     {
         return this.cadetes.FirstOrDefault(cadet => cadet.Id == cad.Id) != null;
@@ -170,7 +176,7 @@ public class Cadeteria
     {
         return this.pedidos.Where(ped => ped.NoTieneCadeteAsignado()).ToList();
     }
-   
+
     public List<Pedido> GetListaPedidos()
     {
         if (this.pedidos != null)
@@ -182,7 +188,7 @@ public class Cadeteria
             return new List<Pedido>();
         }
     }
-     public string MostrarPedidos()
+    public string MostrarPedidos()
     {
         string pedidosMostrar = "";
         foreach (var ped in this.pedidos)
@@ -191,19 +197,46 @@ public class Cadeteria
         }
         return pedidosMostrar;
     }
+    public Pedido GetPedido(int id)
+    {
+        Pedido? pedido = this.pedidos.FirstOrDefault(ped => ped.Numero == id);
+        if (pedido != null)
+        {
+            return pedido;
+        }
+        else
+        {
+            return new Pedido();
+        }
+    }
 
 
 
     //Cadetes
-    private void AgregarCadete(Cadete cadete)
+    public void AgregarCadete(Cadete cadete)
     {
-        this.cadetes.Add(cadete);
+        if (this.cadetes.FirstOrDefault(cad => cad.Id == cadete.Id, null) == null)
+        {
+            this.cadetes.Add(cadete);
+        }
     }
     public Cadete? DevuelveCadete(int numCadete)//Devuelve el cadete que coincide con ID, si es que lo encuentra en la cadeteria, sino devuelve null
     {
         return this.cadetes.FirstOrDefault(cad => cad.Id == numCadete, null);
     }
-     public List<Cadete> GetListaCadetes()//Devuelve la lista de cadetes
+    public Cadete GetCadete(int id)
+    {
+        Cadete? cad = this.cadetes.FirstOrDefault(c => c.Id == id, null);
+        if (cad == null)
+        {
+            return new Cadete();
+        }
+        else
+        {
+            return cad;
+        }
+    }
+    public List<Cadete> GetListaCadetes()//Devuelve la lista de cadetes
     {
         if (this.cadetes != null)
         {
@@ -228,7 +261,11 @@ public class Cadeteria
         }
         return lista;
     }
-
+    public bool ExisteCadete(Cadete cad)
+    {
+        Cadete? cadete = this.cadetes.FirstOrDefault(c => c == cad, null);
+        return (cadete != null);
+    }
 
 
     //Informe
@@ -254,13 +291,29 @@ public class Cadeteria
         var informe = new Informe(datosCadetes);
         return informe;
     }
-
+    public bool EsPedidoPredeterminado(int id)
+    {
+        Pedido encontrado = this.GetPedido(id);
+        if (encontrado.EsPredeterminado())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
 
 
     //Guardar pedidos en JSON
-    public void GuardarPedidos(){
+    public void GuardarPedidos()
+    {
         this.datosPedidos.Guardar(this.pedidos);
+    }
+    public void GuardarCadetes()
+    {
+        this.datosCadetes.Guardar(this.cadetes);
     }
 }
 

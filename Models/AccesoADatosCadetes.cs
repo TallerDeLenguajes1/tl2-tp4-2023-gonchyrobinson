@@ -18,4 +18,10 @@ public class AccesoADatosCadetes
         }
         return (listaCadetes);
     }
+      public void Guardar(List<Cadete> cadetes)
+    {
+        string datosPedidos ="./CargaArchivos/Cadetes.json";
+        string formatoJson = JsonSerializer.Serialize(cadetes);
+        File.WriteAllText(datosPedidos, formatoJson);
+    }
 }

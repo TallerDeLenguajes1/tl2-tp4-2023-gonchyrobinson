@@ -123,6 +123,12 @@ public class Pedido
         }
         return devuelve;
     }
+    public int GetNumero()
+    {
+        return this.numero;
+    }    
+    
+    
     //Relacionan pedido y cadete
     public void AsignarCadeteAPedido(Cadete cadete)
     {
@@ -139,7 +145,7 @@ public class Pedido
             return false;
         }
     }
-    
+
     public bool NoTieneCadeteAsignado()
     {
         return this.cadete == null;
@@ -159,7 +165,9 @@ public class Pedido
     {
         return this.cliente.VerDatos();
     }
+    public bool EsPredeterminado(){
+        return(this.numero==0 && this.obs =="No existe" && this.estado==EstadoPedido.Rechazado);
+    }
 
-    
 
 }

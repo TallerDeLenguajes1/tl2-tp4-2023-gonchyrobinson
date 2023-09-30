@@ -11,16 +11,9 @@ public partial class Cadete
     public string Telefono { get => telefono; set => telefono = value; }
 
 //Constructores
-    public Cadete(int id, string nombre, string direccion, string telefono, List<Pedido> pedidos)
-    {
-        this.id = id;
-        this.nombre = nombre;
-        this.direccion = direccion;
-        this.telefono = telefono;
-    }
     public Cadete()
     {
-
+        this.id=0;
     }
     public Cadete(int id, string nombre, string direccion, string telefono)
     {
@@ -35,4 +28,11 @@ public partial class Cadete
     {
         return "ID: " + this.id + " - Nombre: " + this.nombre + " - Telefono: " + this.telefono + " - Direccion: " + this.direccion;
     }
+
+//Ayuda
+    public bool EsPredeterminado(){
+        return (this.id==0 && this.nombre==null && this.direccion==null && this.telefono==null);
+    }
+
+
 }
